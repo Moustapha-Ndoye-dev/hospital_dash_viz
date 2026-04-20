@@ -151,14 +151,19 @@ Sur **Render**, `PORT` est fourni par la plateforme ; définir **`DEBUG=false`**
 
 ## Déploiement (Render)
 
-Le dépôt inclut **`render.yaml`** (Blueprint) et **`Procfile`**.
+Le dépôt inclut **`render.yaml`** (Blueprint), **`Procfile`** et **`start.sh`**.
 
 1. Pousser le code sur Git en incluant **`data/raw/hospital_data.csv`**.
 2. Créer un service sur [Render](https://render.com) à partir du Blueprint ou configurer manuellement :
    - **Build** : `pip install -r requirements.txt && python scripts/validate_data.py`
-   - **Start** : `gunicorn app:server --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120`
+   - **Start** : `bash start.sh` *(ou la ligne complète ci-dessous si tu préfères sans script)*  
+     `gunicorn app:server --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120`
 
-La version Python est indiquée dans **`runtime.txt`**.
+La version Python est indiquée dans **`runtime.txt`** ; dans le tableau de bord Render, vérifie aussi **`PYTHON_VERSION`** si la plateforme propose une version trop récente par défaut.
+
+### Erreur « No open ports » / `gunicorn app:app`
+
+Render utilise parfois la valeur par défaut **`gunicorn app:app`**, qui est **incorrecte** pour Dash : le serveur WSGI Flask est exposé sous le nom **`server`** dans `app.py` (`server = app.server`). Il faut **`gunicorn app:server`**, pas `app:app`. Dans **Settings → Start Command**, remplace par `bash start.sh` ou la commande `gunicorn app:server ...` ci-dessus, puis redéploie.
 
 ---
 
@@ -173,6 +178,7 @@ hospital_dash_viz/
 ├── runtime.txt
 ├── render.yaml            # Blueprint Render
 ├── Procfile
+├── start.sh               # Commande Gunicorn pour Render (app:server)
 ├── assets/
 │   └── style.css          # Thème UI
 ├── callbacks/             # Callbacks partagés (filtres)

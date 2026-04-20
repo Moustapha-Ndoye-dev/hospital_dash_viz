@@ -9,7 +9,8 @@ services:
     runtime: python
     # plan / region : à ajuster dans le dashboard Render si besoin (offre gratuite = souvent Oregon)
     buildCommand: pip install -r requirements.txt && python scripts/validate_data.py
-    startCommand: gunicorn app:server --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --access-logfile - --error-logfile -
+    # Ne pas utiliser gunicorn app:app — l’objet Dash n’est pas le WSGI ; c’est app:server.
+    startCommand: bash start.sh
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
