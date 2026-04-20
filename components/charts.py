@@ -225,13 +225,23 @@ def scatter_plot(df: pd.DataFrame, x: str, y: str,
                  color: str = None, size: str = None,
                  title: str = "", color_map: dict = None,
                  trendline: str = None) -> go.Figure:
-    """Scatter plot avec tendance optionnelle."""
-    fig = px.scatter(
-        df, x=x, y=y, color=color, size=size,
-        color_discrete_map=color_map or DEPT_COLORS,
-        title=title, trendline=trendline,
-        opacity=0.7,
-    )
+    """Scatter plot avec tendance optionnelle (OLS via statsmodels, voir requirements.txt)."""
+    try:
+        fig = px.scatter(
+            df, x=x, y=y, color=color, size=size,
+            color_discrete_map=color_map or DEPT_COLORS,
+            title=title, trendline=trendline,
+            opacity=0.7,
+        )
+    except Exception:
+        if not trendline:
+            raise
+        fig = px.scatter(
+            df, x=x, y=y, color=color, size=size,
+            color_discrete_map=color_map or DEPT_COLORS,
+            title=title, trendline=None,
+            opacity=0.7,
+        )
     fig.update_traces(marker=dict(line=dict(width=0.5, color="#060A0F")))
     return _apply_theme(fig)
 
