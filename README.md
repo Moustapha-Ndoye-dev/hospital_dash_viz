@@ -111,12 +111,14 @@ Puis ouvrir **http://127.0.0.1:8050** (le port suit la variable `PORT` dans `con
 python -m uvicorn asgi:app --host 127.0.0.1 --port 8000
 ```
 
-**Plus proche de la production (Gunicorn)**
+**Gunicorn (WSGI)**
 
 ```bash
 set DEBUG=false
-gunicorn app:server --bind 127.0.0.1:8050 --workers 1 --threads 4 --timeout 120
+gunicorn wsgi:application --bind 127.0.0.1:8050 --workers 1 --threads 4 --timeout 120
 ```
+
+(équivalent : `gunicorn app:server` — voir `wsgi.py`.)
 
 ---
 
@@ -151,19 +153,21 @@ Sur **Render**, `PORT` est fourni par la plateforme ; définir **`DEBUG=false`**
 
 ## Déploiement (Render)
 
-Le dépôt inclut **`render.yaml`** (Blueprint), **`Procfile`** et **`start.sh`**.
+Le dépôt inclut **`render.yaml`** (Blueprint), **`Procfile`** et des scripts de démarrage.
 
 1. Pousser le code sur Git en incluant **`data/raw/hospital_data.csv`**.
 2. Créer un service sur [Render](https://render.com) à partir du Blueprint ou configurer manuellement :
    - **Build** : `pip install -r requirements.txt && python scripts/validate_data.py`
-   - **Start** : `bash start.sh` *(ou la ligne complète ci-dessous si tu préfères sans script)*  
-     `gunicorn app:server --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120`
+   - **Start (recommandé, sans Gunicorn)** : `bash start_uvicorn.sh`  
+     Cela lance **Uvicorn** sur l’app ASGI **`asgi:app`** (voir [`asgi.py`](asgi.py)), qui monte le Dash/Flask existant. **Gunicorn n’est pas nécessaire**.
+   - **Alternative WSGI** : `bash start.sh` — **Gunicorn** sur [`wsgi:application`](wsgi.py) (Flask `server` derrière Dash).
 
 La version Python est indiquée dans **`runtime.txt`** ; dans le tableau de bord Render, vérifie aussi **`PYTHON_VERSION`** si la plateforme propose une version trop récente par défaut.
 
-### Erreur « No open ports » / `gunicorn app:app`
+### Erreur « No open ports » / mauvaise commande de démarrage
 
-Render utilise parfois la valeur par défaut **`gunicorn app:app`**, qui est **incorrecte** pour Dash : le serveur WSGI Flask est exposé sous le nom **`server`** dans `app.py` (`server = app.server`). Il faut **`gunicorn app:server`**, pas `app:app`. Dans **Settings → Start Command**, remplace par `bash start.sh` ou la commande `gunicorn app:server ...` ci-dessus, puis redéploie.
+- Ne jamais lancer **`gunicorn app:app`** : l’objet Dash n’est pas l’app WSGI. Utilise **`bash start_uvicorn.sh`**, ou **`gunicorn wsgi:application`** / **`bash start.sh`**, ou encore **`gunicorn app:server`**.
+- Dans **Settings → Start Command**, mets **`bash start_uvicorn.sh`** pour la config actuelle du Blueprint, puis redéploie.
 
 ---
 
@@ -178,7 +182,9 @@ hospital_dash_viz/
 ├── runtime.txt
 ├── render.yaml            # Blueprint Render
 ├── Procfile
-├── start.sh               # Commande Gunicorn pour Render (app:server)
+├── start_uvicorn.sh       # Render : Uvicorn / ASGI (sans Gunicorn)
+├── start.sh               # Option : Gunicorn (wsgi:application)
+├── wsgi.py                # Cible Gunicorn explicite (évite app:app)
 ├── assets/
 │   └── style.css          # Thème UI
 ├── callbacks/             # Callbacks partagés (filtres)

@@ -9,8 +9,8 @@ services:
     runtime: python
     # plan / region : à ajuster dans le dashboard Render si besoin (offre gratuite = souvent Oregon)
     buildCommand: pip install -r requirements.txt && python scripts/validate_data.py
-    # Ne pas utiliser gunicorn app:app — l’objet Dash n’est pas le WSGI ; c’est app:server.
-    startCommand: bash start.sh
+    # ASGI / Uvicorn (pas Gunicorn) — voir asgi.py
+    startCommand: bash start_uvicorn.sh
     healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION

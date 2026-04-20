@@ -75,19 +75,30 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["SemaineAnnee"] = df["DateAdmission"].dt.isocalendar().week.astype(int)
     df["AnneeAdmission"] = df["DateAdmission"].dt.year
 
-    # ── Durée réelle depuis les dates ──
-    df["DureeReelle"] = (df["DateSortie"] - df["DateAdmission"]).dt.days
-
-    # ── Score de gravité composite ──
-    # Normalisation min-max du coût et de la durée
+    # ── Durée réelle & scores (assign groupée : évite chained assignment / pandas 3 CoW) ──
     cout_min, cout_max = df["Cout"].min(), df["Cout"].max()
     dur_min, dur_max = df["DureeSejour"].min(), df["DureeSejour"].max()
+    span_c = float(cout_max - cout_min)
+    span_d = float(dur_max - dur_min)
 
-    df["CoutNorme"] = ((df["Cout"] - cout_min) / (cout_max - cout_min)).round(4)
-    df["DureeNorme"] = ((df["DureeSejour"] - dur_min) / (dur_max - dur_min)).round(4)
+    duree_reelle = (df["DateSortie"] - df["DateAdmission"]).dt.days
+    if span_c > 0:
+        cout_norme = ((df["Cout"] - cout_min) / span_c).round(4)
+    else:
+        cout_norme = pd.Series(0.5, index=df.index, dtype="float64")
+    if span_d > 0:
+        duree_norme = ((df["DureeSejour"] - dur_min) / span_d).round(4)
+    else:
+        duree_norme = pd.Series(0.5, index=df.index, dtype="float64")
 
-    # Indice de gravité = moyenne pondérée (60% coût, 40% durée)
-    df["IndiceGravite"] = (0.6 * df["CoutNorme"] + 0.4 * df["DureeNorme"]).round(4)
+    indice_gravite = (0.6 * cout_norme + 0.4 * duree_norme).round(4)
+
+    df = df.assign(
+        DureeReelle=duree_reelle,
+        CoutNorme=cout_norme,
+        DureeNorme=duree_norme,
+        IndiceGravite=indice_gravite,
+    )
 
     print(f"[FEATURES] {len(df.columns) - 10} variables dérivées créées ({len(df.columns)} colonnes total).")
     return df
