@@ -11,6 +11,7 @@
 ## Sommaire
 
 - [Aperçu](#aperçu)
+- [Nouveautés récentes](#nouveautés-récentes)
 - [Fonctionnalités](#fonctionnalités)
 - [Stack technique](#stack-technique)
 - [Prérequis](#prérequis)
@@ -37,6 +38,15 @@ flowchart LR
     Parquet --> Dash[Application Dash]
     Dash --> User[Utilisateur]
 ```
+
+---
+
+## Nouveautés récentes
+
+- **Accueil clarifié** : ajout d’un en-tête projet en haut de la page d’accueil, puis d’un bloc **« Vue d’ensemble »** visible juste avant les KPI.
+- **Sidebar repliable** : bouton dans la navbar pour masquer/afficher le panneau de filtres.
+- **Filtres dates durcis** : meilleure gestion des plages de dates persistées en session pour éviter les vues vides après redéploiement/changement de jeu de données.
+- **Graphiques scatter plus robustes** : dépendance `statsmodels` ajoutée pour `trendline="ols"` avec repli sans tendance en cas d’échec.
 
 ---
 
