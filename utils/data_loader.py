@@ -51,7 +51,15 @@ def load_data() -> pd.DataFrame:
     return df
 
 
-def apply_filters(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
+def _admission_datetimes(df: pd.DataFrame) -> pd.Series:
+    """Dates d'admission en datetime naïf (comparaisons stables prod / fuseaux)."""
+    s = pd.to_datetime(df["DateAdmission"])
+    if getattr(s.dtype, "tz", None) is not None:
+        s = s.dt.tz_convert("UTC").dt.tz_localize(None)
+    return s
+
+
+def apply_filters(df: pd.DataFrame, filters: dict | None) -> pd.DataFrame:
     """
     Applique les filtres sélectionnés par l'utilisateur.
 
@@ -69,6 +77,8 @@ def apply_filters(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
     Returns:
         pd.DataFrame filtré
     """
+    if filters is None:
+        return df
     if not filters:
         return df
 
@@ -99,14 +109,32 @@ def apply_filters(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
     if traitement and len(traitement) > 0:
         mask &= df["Traitement"].isin(traitement)
 
-    # Filtre dates
-    date_start = filters.get("date_start")
-    if date_start:
-        mask &= df["DateAdmission"] >= pd.to_datetime(date_start)
+    # Filtre dates : intersection [utilisateur] ∩ [min/max données]. Si la session garde une
+    # ancienne plage hors jeu de données (redéploiement), on retombe sur la plage utile du fichier.
+    adm = _admission_datetimes(df)
+    adm_day = adm.dt.normalize()
+    data_min = adm_day.min()
+    data_max = adm_day.max()
 
+    date_start = filters.get("date_start")
     date_end = filters.get("date_end")
-    if date_end:
-        mask &= df["DateAdmission"] <= pd.to_datetime(date_end)
+    if date_start or date_end:
+        ds = (
+            pd.to_datetime(date_start).normalize()
+            if date_start
+            else data_min
+        )
+        de = (
+            pd.to_datetime(date_end).normalize()
+            if date_end
+            else data_max
+        )
+        ds = max(ds, data_min)
+        de = min(de, data_max)
+        if ds > de:
+            ds, de = data_min, data_max
+        mask &= adm_day >= ds
+        mask &= adm_day <= de
 
     return df[mask].copy()
 
