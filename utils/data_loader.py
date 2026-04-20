@@ -1,0 +1,128 @@
+"""
+Chargeur de données centralisé avec cache mémoire.
+Point d'accès unique pour toutes les pages et callbacks.
+"""
+
+import os
+import sys
+from functools import lru_cache
+from pathlib import Path
+
+import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from config import RAW_FILE, CLEAN_FILE
+from utils.cleaning import clean_data
+from utils.feature_engineering import engineer_features
+
+
+def _loader_log(msg: str) -> None:
+    if os.environ.get("DASH_QUIET_LOADER", "false").lower() != "true":
+        print(f"[LOADER] {msg}")
+
+
+@lru_cache(maxsize=1)
+def load_data() -> pd.DataFrame:
+    """
+    Charge les données nettoyées et enrichies.
+    Si le fichier processed n'existe pas, exécute le pipeline complet.
+    Résultat mis en cache pour performance optimale.
+
+    Returns:
+        pd.DataFrame : données prêtes à l'analyse
+    """
+    if CLEAN_FILE.exists():
+        try:
+            df = pd.read_parquet(CLEAN_FILE, engine="pyarrow")
+        except Exception:
+            df = pd.read_parquet(CLEAN_FILE)
+        _loader_log(f"Données chargées (Parquet) : {len(df)} séjours.")
+    else:
+        _loader_log("Première exécution — pipeline de nettoyage…")
+        df = clean_data(RAW_FILE)
+        df = engineer_features(df)
+
+        # Sauvegarde du fichier nettoyé au format Parquet (plus performant)
+        CLEAN_FILE.parent.mkdir(parents=True, exist_ok=True)
+        df.to_parquet(CLEAN_FILE, index=False)
+        _loader_log(f"Pipeline terminé — fichier : {CLEAN_FILE}")
+
+    return df
+
+
+def apply_filters(df: pd.DataFrame, filters: dict) -> pd.DataFrame:
+    """
+    Applique les filtres sélectionnés par l'utilisateur.
+
+    Args:
+        df: DataFrame source
+        filters: dictionnaire des valeurs de filtre depuis dcc.Store
+            - departement : list[str] ou None
+            - maladie : list[str] ou None
+            - sexe : str ('M', 'F', 'Tous') ou None
+            - tranche_age : list[str] ou None
+            - traitement : list[str] ou None
+            - date_start : str (YYYY-MM-DD) ou None
+            - date_end : str (YYYY-MM-DD) ou None
+
+    Returns:
+        pd.DataFrame filtré
+    """
+    if not filters:
+        return df
+
+    mask = pd.Series(True, index=df.index)
+
+    # Filtre département
+    dept = filters.get("departement")
+    if dept and len(dept) > 0:
+        mask &= df["Departement"].isin(dept)
+
+    # Filtre maladie
+    maladie = filters.get("maladie")
+    if maladie and len(maladie) > 0:
+        mask &= df["Maladie"].isin(maladie)
+
+    # Filtre sexe
+    sexe = filters.get("sexe")
+    if sexe and sexe != "Tous":
+        mask &= df["Sexe"] == sexe
+
+    # Filtre tranche d'âge
+    tranche = filters.get("tranche_age")
+    if tranche and len(tranche) > 0:
+        mask &= df["TrancheAge"].isin(tranche)
+
+    # Filtre traitement
+    traitement = filters.get("traitement")
+    if traitement and len(traitement) > 0:
+        mask &= df["Traitement"].isin(traitement)
+
+    # Filtre dates
+    date_start = filters.get("date_start")
+    if date_start:
+        mask &= df["DateAdmission"] >= pd.to_datetime(date_start)
+
+    date_end = filters.get("date_end")
+    if date_end:
+        mask &= df["DateAdmission"] <= pd.to_datetime(date_end)
+
+    return df[mask].copy()
+
+
+def get_filter_options(df: pd.DataFrame) -> dict:
+    """
+    Retourne les options disponibles pour chaque filtre.
+
+    Returns:
+        dict avec les listes d'options pour chaque filtre
+    """
+    return {
+        "departements": sorted(df["Departement"].unique().tolist()),
+        "maladies": sorted(df["Maladie"].unique().tolist()),
+        "traitements": sorted(df["Traitement"].unique().tolist()),
+        "tranches_age": sorted(df["TrancheAge"].unique().tolist()),
+        "date_min": df["DateAdmission"].min().strftime("%Y-%m-%d"),
+        "date_max": df["DateAdmission"].max().strftime("%Y-%m-%d"),
+    }

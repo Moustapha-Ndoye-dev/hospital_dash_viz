@@ -1,0 +1,24 @@
+# Déploiement Render — Web Service (Dash / Flask WSGI)
+# Doc : https://render.com/docs/blueprint-spec
+#
+# Après push Git : tableau de bord Render → New → Blueprint → sélectionner ce repo.
+
+services:
+  - type: web
+    name: hospital-dash-viz
+    runtime: python
+    # plan / region : à ajuster dans le dashboard Render si besoin (offre gratuite = souvent Oregon)
+    buildCommand: pip install -r requirements.txt && python scripts/validate_data.py
+    startCommand: gunicorn app:server --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --access-logfile - --error-logfile -
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.6"
+      - key: DEBUG
+        value: "false"
+      - key: DASH_QUIET_LOADER
+        value: "true"
+      - key: DASH_USE_RELOADER
+        value: "false"
+      - key: DASH_DEV_TOOLS_PROPS_CHECK
+        value: "false"
