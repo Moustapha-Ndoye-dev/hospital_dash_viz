@@ -15,10 +15,6 @@ from components.charts import (
 from config import (
     CHART_PALETTE,
     DEPT_COLORS,
-    DELIVERABLE_LABEL,
-    DELIVERABLE_RECIPIENT,
-    DELIVERABLE_SECTION_KPI,
-    DELIVERABLE_SECTION_KPI_DESC,
     DELIVERABLE_TAB_TITLE,
     DELIVERABLE_TITLE,
 )
@@ -32,10 +28,6 @@ layout = html.Div([
     # En-tête projet — titre, contexte et résumé du travail réalisé
     html.Div(className="home-hero", children=[
         html.Div(className="home-hero-inner", children=[
-            html.Div(className="home-hero-meta", children=[
-                html.P(DELIVERABLE_LABEL, className="home-hero-eyebrow"),
-                html.P(DELIVERABLE_RECIPIENT, className="home-hero-context"),
-            ]),
             html.H1(DELIVERABLE_TITLE, className="home-hero-title"),
             html.P(
                 "Ce livrable présente une chaîne complète : constitution d’indicateurs à partir "
@@ -53,11 +45,6 @@ layout = html.Div([
                 html.Span("Traçabilité par filtres et périodes", className="home-hero-badge"),
             ]),
         ]),
-    ]),
-
-    html.Div(className="home-section-intro", children=[
-        html.H2(DELIVERABLE_SECTION_KPI, className="home-section-title"),
-        html.P(DELIVERABLE_SECTION_KPI_DESC, className="home-section-desc"),
     ]),
 
     # KPIs
