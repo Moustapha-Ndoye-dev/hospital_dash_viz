@@ -12,21 +12,52 @@ from components.kpi_card import kpi_card, stat_row
 from components.charts import (
     donut_chart, line_chart, bar_horizontal, bar_vertical,
 )
-from config import DEPT_COLORS, CHART_PALETTE
+from config import (
+    CHART_PALETTE,
+    DEPT_COLORS,
+    DELIVERABLE_LABEL,
+    DELIVERABLE_RECIPIENT,
+    DELIVERABLE_SECTION_KPI,
+    DELIVERABLE_SECTION_KPI_DESC,
+    DELIVERABLE_TAB_TITLE,
+    DELIVERABLE_TITLE,
+)
 
-dash.register_page(__name__, path="/", name="Accueil", title="Accueil | Dashboard Hospitalier")
+dash.register_page(__name__, path="/", name="Accueil", title=DELIVERABLE_TAB_TITLE)
 
 # ═══════════════════════════════════════
 # LAYOUT
 # ═══════════════════════════════════════
 layout = html.Div([
-    # Header
-    html.Div(className="page-header", children=[
-        html.H1("📊 Vue d'ensemble", className="page-title"),
-        html.P(
-            "Synthèse des indicateurs clés de performance hospitalière",
-            className="page-subtitle",
-        ),
+    # En-tête projet — titre, contexte et résumé du travail réalisé
+    html.Div(className="home-hero", children=[
+        html.Div(className="home-hero-inner", children=[
+            html.Div(className="home-hero-meta", children=[
+                html.P(DELIVERABLE_LABEL, className="home-hero-eyebrow"),
+                html.P(DELIVERABLE_RECIPIENT, className="home-hero-context"),
+            ]),
+            html.H1(DELIVERABLE_TITLE, className="home-hero-title"),
+            html.P(
+                "Ce livrable présente une chaîne complète : constitution d’indicateurs à partir "
+                "des données de séjours (activité, durée de séjour, répartition par services et "
+                "pathologies, charges), mise à disposition d’une interface de restitution pour "
+                "la direction, et exploration par filtres (période d’admission, périmètre clinique "
+                "et organisationnel). L’objectif est d’éclairer les arbitrages budgétaires et "
+                "de pilotage des filières de soins.",
+                className="home-hero-lead",
+            ),
+            html.Div(className="home-hero-badges", children=[
+                html.Span("Cadre : projet appliqué à la donnée hospitalière", className="home-hero-badge"),
+                html.Span("Indicateurs conformes à un usage direction / qualité", className="home-hero-badge"),
+                html.Span("Restitution décisionnelle interactive", className="home-hero-badge"),
+                html.Span("Traçabilité par filtres et périodes", className="home-hero-badge"),
+            ]),
+        ]),
+    ]),
+
+    html.Div(className="home-section-intro", children=[
+        html.H2(DELIVERABLE_SECTION_KPI, className="home-section-title"),
+        html.P(DELIVERABLE_SECTION_KPI_DESC, className="home-section-desc"),
     ]),
 
     # KPIs

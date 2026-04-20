@@ -36,6 +36,7 @@ app.layout = create_main_layout()
 #  par Dash Pages depuis les fichiers pages/)
 # ──────────────────────────────────────────────
 import callbacks.filter_callbacks  # noqa: F401, E402
+import callbacks.sidebar_callbacks  # noqa: F401, E402
 
 # ──────────────────────────────────────────────
 # LANCEMENT

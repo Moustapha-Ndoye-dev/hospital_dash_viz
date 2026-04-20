@@ -26,15 +26,30 @@ def create_navbar() -> html.Div:
     return html.Nav(
         className="navbar",
         children=[
-            # Logo
             html.Div(
-                className="navbar-brand",
+                className="navbar-start",
                 children=[
-                    html.Span("🏥", className="navbar-logo-icon"),
-                    html.Div([
-                        html.Span("Dashboard", className="navbar-brand-primary"),
-                        html.Span("Hospitalier", className="navbar-brand-secondary"),
-                    ], className="navbar-brand-text"),
+                    html.Div(
+                        className="navbar-brand",
+                        children=[
+                            html.Span("🏥", className="navbar-logo-icon"),
+                            html.Div([
+                                html.Span("Dashboard", className="navbar-brand-primary"),
+                                html.Span("Hospitalier", className="navbar-brand-secondary"),
+                            ], className="navbar-brand-text"),
+                        ],
+                    ),
+                    html.Button(
+                        id="btn-sidebar-toggle",
+                        className="btn-sidebar-toggle",
+                        type="button",
+                        title="Masquer le panneau filtres",
+                        n_clicks=0,
+                        children=[
+                            html.Span("◀", className="btn-sidebar-toggle-icon"),
+                            html.Span(" Filtres", className="btn-sidebar-toggle-text"),
+                        ],
+                    ),
                 ],
             ),
             # Liens de navigation

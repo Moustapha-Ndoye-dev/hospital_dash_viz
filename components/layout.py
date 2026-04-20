@@ -54,8 +54,12 @@ def create_main_layout() -> html.Div:
             # Navbar
             create_navbar(),
 
+            # État du panneau filtres (repliable), persistant par session navigateur
+            dcc.Store(id="sidebar-collapsed", storage_type="session", data=False),
+
             # Corps : sidebar + toutes les pages sous un seul Loading (filtres inclus)
             html.Div(
+                id="app-body",
                 className="app-body",
                 children=[
                     dcc.Loading(

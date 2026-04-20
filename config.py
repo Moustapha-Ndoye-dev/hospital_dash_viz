@@ -174,6 +174,25 @@ APP_VERSION = "1.0.0"
 APP_AUTHOR = "Moustapha Ndoye"
 APP_YEAR = "2025"
 
+# Présentation type livrable / rapport à une direction hospitalière (accueil, couvertures)
+DELIVERABLE_LABEL = (
+    "Master 2 Sciences des Données pour la Santé (CSDS) · Livrable de projet tutoré"
+)
+DELIVERABLE_RECIPIENT = (
+    "À destination de la direction médico-administrative d’un établissement hospitalier · "
+    "Contexte : analyse médico-économique des séjours (Dakar)"
+)
+DELIVERABLE_TITLE = (
+    "Projet de tableau de bord décisionnel pour le pilotage des hospitalisations "
+    "et le suivi des coûts et de l’activité par département"
+)
+DELIVERABLE_SECTION_KPI = "Synthèse des indicateurs de pilotage institutionnel"
+DELIVERABLE_SECTION_KPI_DESC = (
+    "Les indicateurs ci-dessous constituent la restitution opérationnelle associée au projet : "
+    "ils se calculent sur la cohorte définie par les filtres (période d’admission, services, critères cliniques)."
+)
+DELIVERABLE_TAB_TITLE = "Accueil | Livrable pilotage hospitalier — Master CSDS"
+
 DEBUG = os.environ.get("DEBUG", "True").lower() == "true"
 PORT = int(os.environ.get("PORT", 8050))
 
