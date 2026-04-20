@@ -7,6 +7,7 @@ import dash
 from dash import html, dcc, callback, Input, Output
 import pandas as pd
 from utils.data_loader import load_data, apply_filters
+from utils.filter_inputs import FILTER_INPUTS, build_filters_dict
 from utils.statistics import stats_par_maladie, stats_par_traitement, matrice_maladie_departement
 from components.charts import (
     treemap_chart, heatmap, sunburst_chart, bar_grouped, radar_chart, donut_chart,
@@ -90,9 +91,12 @@ layout = html.Div([
     Output("patho-advice-radar", "children"),
     Output("patho-advice-bar-traitement", "children"),
     Output("patho-advice-donut", "children"),
-    Input("filter-store", "data"),
+    *FILTER_INPUTS,
 )
-def update_pathologies(filters):
+def update_pathologies(dept, maladie, sexe, age, traitement, date_start, date_end):
+    filters = build_filters_dict(
+        dept, maladie, sexe, age, traitement, date_start, date_end
+    )
     df = load_data()
     df = apply_filters(df, filters)
 

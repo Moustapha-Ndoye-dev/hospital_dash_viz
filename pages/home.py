@@ -6,6 +6,7 @@ Route : /
 import dash
 from dash import html, dcc, callback, Input, Output
 from utils.data_loader import load_data, apply_filters
+from utils.filter_inputs import FILTER_INPUTS, build_filters_dict
 from utils.statistics import compute_kpis, stats_par_departement, tendance_mensuelle
 from components.kpi_card import kpi_card, stat_row
 from components.charts import (
@@ -103,9 +104,12 @@ layout = html.Div([
     Output("home-advice-maladie", "children"),
     Output("home-advice-ranking", "children"),
     Output("home-advice-dms", "children"),
-    Input("filter-store", "data"),
+    *FILTER_INPUTS,
 )
-def update_home(filters):
+def update_home(dept, maladie, sexe, age, traitement, date_start, date_end):
+    filters = build_filters_dict(
+        dept, maladie, sexe, age, traitement, date_start, date_end
+    )
     df = load_data()
     df = apply_filters(df, filters)
 

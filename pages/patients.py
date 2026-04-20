@@ -7,6 +7,7 @@ import dash
 from dash import html, dcc, callback, Input, Output
 import plotly.express as px
 from utils.data_loader import load_data, apply_filters
+from utils.filter_inputs import FILTER_INPUTS, build_filters_dict
 from components.charts import (
     histogram, box_plot, donut_chart, scatter_plot, bar_grouped,
 )
@@ -92,9 +93,12 @@ layout = html.Div([
     Output("patients-advice-sexe-dept", "children"),
     Output("patients-advice-scatter", "children"),
     Output("patients-advice-maladie", "children"),
-    Input("filter-store", "data"),
+    *FILTER_INPUTS,
 )
-def update_patients(filters):
+def update_patients(dept, maladie, sexe, age, traitement, date_start, date_end):
+    filters = build_filters_dict(
+        dept, maladie, sexe, age, traitement, date_start, date_end
+    )
     df = load_data()
     df = apply_filters(df, filters)
 

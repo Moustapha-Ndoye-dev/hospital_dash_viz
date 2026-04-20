@@ -5,18 +5,13 @@ Met à jour le dcc.Store partagé entre toutes les pages.
 
 from dash import callback, Input, Output, State
 from utils.data_loader import load_data, apply_filters, get_filter_options
+from utils.filter_inputs import FILTER_INPUTS, build_filters_dict
 
 
 @callback(
     Output("filter-store", "data"),
     Output("filter-count", "children"),
-    Input("filter-dept", "value"),
-    Input("filter-maladie", "value"),
-    Input("filter-sexe", "value"),
-    Input("filter-age", "value"),
-    Input("filter-traitement", "value"),
-    Input("filter-dates", "start_date"),
-    Input("filter-dates", "end_date"),
+    *FILTER_INPUTS,
 )
 def update_filter_store(dept, maladie, sexe, age, traitement,
                         date_start, date_end):
@@ -24,15 +19,9 @@ def update_filter_store(dept, maladie, sexe, age, traitement,
     Centralise les valeurs de filtre dans un Store partagé.
     Met à jour le compteur de résultats dans la sidebar.
     """
-    filters = {
-        "departement": dept or [],
-        "maladie": maladie or [],
-        "sexe": sexe or "Tous",
-        "tranche_age": age or [],
-        "traitement": traitement or [],
-        "date_start": date_start,
-        "date_end": date_end,
-    }
+    filters = build_filters_dict(
+        dept, maladie, sexe, age, traitement, date_start, date_end
+    )
 
     # Compter les résultats filtrés
     df = load_data()

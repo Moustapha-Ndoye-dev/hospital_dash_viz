@@ -8,6 +8,7 @@ from dash import html, dcc, callback, Input, Output, dash_table
 import plotly.graph_objects as go
 import pandas as pd
 from utils.data_loader import load_data, apply_filters
+from utils.filter_inputs import FILTER_INPUTS, build_filters_dict
 from utils.statistics import (
     compute_kpis, stats_par_departement, stats_par_maladie,
     top_sejours_couteux, distribution_stats, tendance_mensuelle,
@@ -102,9 +103,12 @@ layout = html.Div([
     Output("fin-advice-maladie", "children"),
     Output("fin-advice-cumule", "children"),
     Output("fin-advice-cout-jour", "children"),
-    Input("filter-store", "data"),
+    *FILTER_INPUTS,
 )
-def update_finances(filters):
+def update_finances(dept, maladie, sexe, age, traitement, date_start, date_end):
+    filters = build_filters_dict(
+        dept, maladie, sexe, age, traitement, date_start, date_end
+    )
     df = load_data()
     df = apply_filters(df, filters)
 

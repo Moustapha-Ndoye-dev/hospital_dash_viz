@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 from utils.data_loader import load_data, apply_filters
+from utils.filter_inputs import FILTER_INPUTS, build_filters_dict
 from components.charts import (
     histogram, violin_plot, bar_vertical, line_chart, heatmap, donut_chart,
 )
@@ -114,9 +115,12 @@ layout = html.Div([
     Output("sej-advice-line", "children"),
     Output("sej-advice-saison", "children"),
     Output("sej-advice-taux", "children"),
-    Input("filter-store", "data"),
+    *FILTER_INPUTS,
 )
-def update_sejours(filters):
+def update_sejours(dept, maladie, sexe, age, traitement, date_start, date_end):
+    filters = build_filters_dict(
+        dept, maladie, sexe, age, traitement, date_start, date_end
+    )
     df = load_data()
     df = apply_filters(df, filters)
 

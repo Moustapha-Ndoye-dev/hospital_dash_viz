@@ -3,7 +3,8 @@ from dash import html, dcc, callback, Input, Output, State
 import pandas as pd
 import io
 from datetime import datetime
-from utils.data_loader import load_data
+from utils.data_loader import load_data, apply_filters
+from utils.filter_inputs import FILTER_INPUTS, FILTER_STATES, build_filters_dict
 from utils.statistics import (
     compute_kpis, stats_par_departement, stats_par_maladie,
     stats_par_traitement
@@ -50,9 +51,12 @@ layout = html.Div(className="audit-container", children=[
 
 @callback(
     Output("rapport-preview-container", "children"),
-    Input("filter-store", "data")
+    *FILTER_INPUTS,
 )
-def update_rapport_preview(filters):
+def update_rapport_preview(dept, maladie, sexe, age, traitement, date_start, date_end):
+    filters = build_filters_dict(
+        dept, maladie, sexe, age, traitement, date_start, date_end
+    )
     df = load_data()
     df = apply_filters(df, filters)
     
@@ -153,10 +157,13 @@ def update_rapport_preview(filters):
 @callback(
     Output("download-pdf", "data"),
     Input("btn-download-pdf", "n_clicks"),
-    State("filter-store", "data"),
+    *FILTER_STATES,
     prevent_initial_call=True,
 )
-def download_pdf(n_clicks, filters):
+def download_pdf(n_clicks, dept, maladie, sexe, age, traitement, date_start, date_end):
+    filters = build_filters_dict(
+        dept, maladie, sexe, age, traitement, date_start, date_end
+    )
     df = load_data()
     df = apply_filters(df, filters)
     kpis = compute_kpis(df)
@@ -178,30 +185,29 @@ def download_pdf(n_clicks, filters):
 
 # ── Fonctions utilitaires ──
 
-def apply_filters(df, filters):
-    if not filters: return df
-    dff = df.copy()
-    if filters.get("dept") and filters["dept"] != "Tous":
-        dff = dff[dff["Departement"] == filters["dept"]]
-    if filters.get("patho") and filters["patho"] != "Tous":
-        dff = dff[dff["Maladie"] == filters["patho"]]
-    if filters.get("sexe") and filters["sexe"] != "Tous":
-        dff = dff[dff["Sexe"] == filters["sexe"]]
-    if filters.get("age_range"):
-        dff = dff[dff["TrancheAge"].isin(filters["age_range"])]
-    if filters.get("treatment") and filters["treatment"] != "Tous":
-        dff = dff[dff["Traitement"] == filters["treatment"]]
-    if filters.get("date_start") and filters.get("date_end"):
-        dff = dff[(dff["DateAdmission"] >= filters["date_start"]) & 
-                    (dff["DateAdmission"] <= filters["date_end"])]
-    return dff
-
 def _describe_filters(filters):
-    if not filters: return "Ensemble de l'activité"
+    if not filters:
+        return "Ensemble de l'activité"
     parts = []
-    if filters.get("dept") and filters["dept"] != "Tous": parts.append(f"Pôle: {filters['dept']}")
-    if filters.get("patho") and filters["patho"] != "Tous": parts.append(f"Patho: {filters['patho']}")
-    if not parts: return "Cohorte complète"
+    dept = filters.get("departement") or []
+    if dept:
+        parts.append(f"Pôles: {', '.join(dept)}")
+    mal = filters.get("maladie") or []
+    if mal:
+        parts.append(f"Pathologies: {', '.join(mal)}")
+    if filters.get("sexe") and filters["sexe"] != "Tous":
+        parts.append(f"Sexe: {filters['sexe']}")
+    tr = filters.get("tranche_age") or []
+    if tr:
+        parts.append(f"Âges: {', '.join(tr)}")
+    trait = filters.get("traitement") or []
+    if trait:
+        parts.append(f"Traitements: {', '.join(trait)}")
+    ds, de = filters.get("date_start"), filters.get("date_end")
+    if ds and de:
+        parts.append(f"Période: {ds} → {de}")
+    if not parts:
+        return "Cohorte complète"
     return " | ".join(parts)
 
 def _format_value(val) -> str:
