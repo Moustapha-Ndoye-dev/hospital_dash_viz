@@ -47,6 +47,15 @@ layout = html.Div([
         ]),
     ]),
 
+    # En-tête section analytique (visible juste après le bloc projet)
+    html.Div(className="page-header", children=[
+        html.H1("📊 Vue d'ensemble", className="page-title"),
+        html.P(
+            "Synthèse des indicateurs clés de performance hospitalière",
+            className="page-subtitle",
+        ),
+    ]),
+
     # KPIs
     html.Div(id="home-kpis", className="kpi-grid"),
 
